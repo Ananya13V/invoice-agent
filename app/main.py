@@ -1,11 +1,20 @@
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
+from sqlalchemy import text
+from sqlalchemy.orm import Session
 
-app = FastAPI()
+from app.db import get_db
+from app.routers import invoices
+
+app = FastAPI(title="Invoice Agent")
+app.include_router(invoices.router)
+
 
 @app.get("/")
 def read_root():
     return {"Hello": "World"}
 
-@app.get("/items/{item_id}")
-def read_item(item_id: int, q: str | None = None):
-    return {"item_id": item_id, "q": q}
+
+@app.get("/health/db")
+def health_db(db: Session = Depends(get_db)):
+    db.execute(text("SELECT 1"))
+    return {"database": "ok"}
